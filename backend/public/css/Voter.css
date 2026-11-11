@@ -1,0 +1,212 @@
+
+        :root {
+            color-scheme: light;
+            --ink: #1d2925;
+            --muted: #68756f;
+            --line: #e1e7e3;
+            --paper: #ffffff;
+            --canvas: #f5f7f5;
+            --green: #2f6651;
+            --green-dark: #244e3e;
+            --green-soft: #eaf2ed;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: var(--canvas);
+            color: var(--ink);
+            font-family: "Segoe UI", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            min-height: 70px;
+            padding: 0 clamp(20px, 7vw, 96px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--paper);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .navbar h2 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .navbar h2 span {
+            color: var(--green);
+        }
+
+        .navbar a {
+            color: var(--green-dark);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .main-conterner {
+            width: min(100% - 36px, 850px);
+            margin: 56px auto;
+        }
+
+        .Welcome {
+            padding: clamp(30px, 6vw, 54px);
+            border-radius: 12px;
+            background: var(--green-dark);
+            color: var(--paper);
+        }
+
+        .Welcome .eyebrow {
+            margin: 0 0 13px;
+            color: #bfd3c6;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+        }
+
+        .Welcome h1 {
+            margin: 0;
+            font-size: clamp(30px, 5vw, 44px);
+            font-weight: 650;
+            letter-spacing: -0.04em;
+            line-height: 1.12;
+        }
+
+        .Welcome > p:last-child {
+            margin: 14px 0 0;
+            color: #d6e2da;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .voting-panel {
+            margin-top: 22px;
+            padding: clamp(22px, 5vw, 36px);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--paper);
+            box-shadow: 0 10px 30px rgb(29 41 37 / 5%);
+        }
+
+        .voting-panel > label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .voting-panel > input {
+            width: 100%;
+            min-height: 46px;
+            padding: 0 13px;
+            border: 1px solid #cbd5cf;
+            border-radius: 6px;
+            background: var(--paper);
+            color: var(--ink);
+            font: inherit;
+            font-size: 14px;
+        }
+
+        .voting-panel > input::placeholder {
+            color: #929d96;
+        }
+
+        .voting-panel > input:focus {
+            outline: 3px solid #d5e5da;
+            border-color: var(--green);
+        }
+
+        .voting-panel h2 {
+            margin: 30px 0 16px;
+            font-size: 19px;
+            letter-spacing: -0.02em;
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 12px;
+        }
+
+        .candidate-card {
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--paper);
+        }
+
+        .candidate-card:hover {
+            border-color: #9ab5a5;
+            background: #f8faf8;
+        }
+
+        .candidate-card input {
+            accent-color: var(--green);
+        }
+
+        #voteButton {
+            min-height: 46px;
+            margin-top: 24px;
+            padding: 0 20px;
+            border: 0;
+            border-radius: 6px;
+            background: var(--green);
+            color: var(--paper);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 650;
+            cursor: pointer;
+            transition: background-color 140ms ease;
+        }
+
+        #voteButton:hover {
+            background: var(--green-dark);
+        }
+
+        #voteButton:focus-visible,
+        .navbar a:focus-visible {
+            outline: 3px solid #9ab5a5;
+            outline-offset: 3px;
+        }
+
+        #message {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 520px) {
+            .main-conterner {
+                margin: 28px auto;
+            }
+
+            .Welcome,
+            .voting-panel {
+                border-radius: 9px;
+            }
+
+            #voteButton {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }

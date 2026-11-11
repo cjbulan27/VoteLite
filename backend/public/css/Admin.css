@@ -1,0 +1,208 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.navbar {
+    background: #1e3a8a;
+    color: white;
+    padding: 20px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar span {
+    color: #93c5fd;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+}
+
+.main-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.welcome {
+    margin-bottom: 30px;
+}
+
+.eyebrow {
+    color: #2563eb;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.welcome h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.voting-panel,
+.results-panel {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+input {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0 25px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+}
+
+.candidate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.candidate-card,
+.stat-card,
+.result-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 22px;
+}
+
+.candidate-card.selected {
+    border: 2px solid #2563eb;
+    background: #eff6ff;
+}
+
+.candidate-card h3 {
+    margin-bottom: 10px;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+button:hover {
+    background: #1e40af;
+}
+
+button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.select-button {
+    width: 100%;
+}
+
+.statistics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card h2 {
+    font-size: 30px;
+    color: #2563eb;
+    margin-top: 12px;
+}
+
+.result-card {
+    margin-top: 15px;
+}
+
+.progress-bar {
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #2563eb;
+    transition: width 0.4s ease;
+}
+
+.success {
+    color: #16a34a;
+    margin-top: 15px;
+}
+
+.error {
+    color: #dc2626;
+    margin-top: 15px;
+}
+
+@media (max-width: 600px) {
+    .welcome h1 {
+        font-size: 28px;
+    }
+
+    .navbar {
+        padding: 18px 5%;
+    }
+}
+
+.add-candidate-panel {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.add-candidate-panel h2 {
+    margin-bottom: 8px;
+}
+
+.add-candidate-panel p {
+    color: #64748b;
+    margin-bottom: 15px;
+}
+
+.add-candidate-panel label {
+    display: block;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.add-candidate-panel input {
+    margin-bottom: 10px;
+}
+
+#addCandidateButton {
+    margin-top: 5px;
+}
+
+#candidateMessage.success {
+    color: #16a34a;
+    margin-top: 15px;
+}
+
+#candidateMessage.error {
+    color: #dc2626;
+    margin-top: 15px;
+}

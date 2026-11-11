@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Portal | Online Election</title>
+    <link rel="stylesheet" href="css/voter.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <h2>Vote<span>System</span></h2>
+        <a href="admin.html">Admin Dashboard</a>
+    </nav>
+
+    <main class="main-conterner">
+        <section class="Welcome">
+            <p class="eyebrow"> ONLINE ELECTION </p>
+            <h1>Make you vote count</h1>
+            <p>Select your preferred candidate and cast your vote.</p>
+        </section>
+
+        <section class="voting-panel">
+            <label for="voterId">Voter ID:</label>
+            <input type="text" id="voterId" name="voterId" placeholder="Enter your voter ID">
+            
+            <h2>Select Your Candidate</h2>
+            <div id-="candidates" class="candidate-grid">
+        
+            </div>
+            <button id="voteButton">Submit My Vote</button>
+            <p id="message"></p>
+        </section>
+    </main>
+<script src="js/voter.js"></script> 
+</body>
+</html>

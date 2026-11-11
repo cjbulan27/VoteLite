@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <h2>Vote<span>System</span></h2>
+        <a href="voter.html">Voter Page</a>
+    </nav>
+
+    <main class="main-container">
+        <section class="welcome">
+            <p class="eyebrow">ADMINISTRATION</p>
+            <h1>Voting Dashboard</h1>
+            <p>Monitor election results in real time.</p>
+            <p id="connection">Connecting...</p>
+        </section>
+
+        <section class="statistics">
+            <div class="stat-card">
+                <p>Total Votes</p>
+                <h2 id="totalVotes">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Total Candidates</p>
+                <h2 id="totalCandidates">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <p>Leading Candidate</p>
+                <h2 id="leader">None</h2>
+            </div>
+        </section>
+
+        <section class="results-panel">
+            <h2>Live Voting Results</h2>
+            <div id="candidateResults">
+                Waiting for results...
+            </div>
+        </section>
+    </main>
+    
+    <form id="addCandidateForm">
+        <label for="candidateName">Candidate Name</label>
+
+        <input
+            type="text"
+            id="candidateName"
+            placeholder="Enter candidate name"
+            required
+        >
+
+        <button type="submit" id="addCandidateButton">
+            + Add Candidate
+        </button>
+    </form>
+
+    <p id="candidateMessage"></p>
+</section>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>
