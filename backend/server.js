@@ -1,156 +1,107 @@
-
 const express = require("express");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
+const data = require("./data");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.json());
-app.use(express.static("public"));
-app.get("/", (req, res) => {
-    res.redirect("/voter.html")
-});
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/", (req, res) => res.redirect("/voter.html"));
 
-// Temporary voting data
-let candidates = [
-    { id: 1, name: "Candidate A", votes: 0 },
-    { id: 2, name: "Candidate B", votes: 0 },
-    { id: 3, name: "Candidate C", votes: 0 }
-];
-
-const voters = new Set();
-
-// Calculate total votes
-function getTotalVotes() {
-    return candidates.reduce(
-        (total, candidate) => total + candidate.votes,
-        0
-    );
+function getResults() {
+    return {
+        categories: data.categories,
+        candidates: data.getCandidates(),
+        totalVotes: data.getTotalVotes()
+    };
 }
 
-// GET: Retrieve candidates and results
+app.get("/api/categories", (req, res) => {
+    res.json(data.categories);
+});
+
 app.get("/api/candidates", (req, res) => {
-    res.json(candidates);
+    res.json(data.getCandidates());
 });
 
 app.get("/api/results", (req, res) => {
-    res.json({
-        candidates,
-        totalVotes: getTotalVotes()
-    });
+    res.json(getResults());
 });
 
-// POST: Submit a vote
 app.post("/api/vote", (req, res) => {
-    const { voterId, candidateId } = req.body;
-
-    if (!voterId || !candidateId) {
+    const { voterId, candidateIds } = req.body;
+    if (typeof voterId !== "string" || !voterId.trim()) {
         return res.status(400).json({
             success: false,
-            message: "Voter ID and candidate are required."
+            message: "Voter ID is required."
         });
     }
 
-    const id = voterId.trim().toLowerCase();
-
-    if (voters.has(id)) {
-        return res.status(400).json({
-            success: false,
-            message: "You have already voted."
-        });
+    const result = data.submitBallot(voterId, candidateIds);
+    if (!result.success) {
+        return res.status(400).json(result);
     }
 
-    const candidate = candidates.find(
-        c => c.id === Number(candidateId)
-    );
-
-    if (!candidate) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid candidate."
-        });
-    }
-
-    // Process vote
-    candidate.votes++;
-    voters.add(id);
-
-    const data = {
-        candidates,
-        totalVotes: getTotalVotes()
-    };
-
-    // Broadcast updated results
-    io.emit("vote:updated", data);
-
-    res.json({
+    const results = getResults();
+    io.emit("vote:updated", results);
+    return res.json({
         success: true,
-        message: "Your vote was submitted successfully!"
+        message: "Your ballot was submitted successfully!"
     });
 });
 
-
-// POST: Add a new candidate
 app.post("/api/candidates", (req, res) => {
-    const { name } = req.body;
-
-    if (!name || !name.trim()) {
+    const { name, categoryId } = req.body;
+    if (typeof name !== "string" || !name.trim()) {
         return res.status(400).json({
             success: false,
             message: "Candidate name is required."
         });
     }
-
-    const candidateName = name.trim();
-
-    // Prevent duplicate candidate names
-    const exists = candidates.some(
-        candidate =>
-            candidate.name.toLowerCase() === candidateName.toLowerCase()
-    );
-
-    if (exists) {
+    if (typeof categoryId !== "string" || !categoryId) {
         return res.status(400).json({
             success: false,
-            message: "Candidate already exists."
+            message: "Category is required."
         });
     }
 
-    const newCandidate = {
-        id: candidates.length > 0
-            ? Math.max(...candidates.map(c => c.id)) + 1
-            : 1,
-        name: candidateName,
-        votes: 0
-    };
+    const result = data.addCandidate(name, categoryId);
+    if (!result.success) {
+        return res.status(400).json(result);
+    }
 
-    candidates.push(newCandidate);
-
-    // Broadcast updated candidate list and results
-    io.emit("vote:updated", {
-        candidates,
-        totalVotes: getTotalVotes()
-    });
-
-    res.status(201).json({
+    io.emit("vote:updated", getResults());
+    return res.status(201).json({
         success: true,
-        message: "Candidate added successfully!",
-        candidate: newCandidate
+        message: "Candidate added successfully.",
+        candidate: result.candidate
     });
 });
 
-// Send current results to newly connected clients
 io.on("connection", socket => {
-    console.log("Client connected:", socket.id);
+    socket.emit("vote:updated", getResults());
+});
 
-    socket.emit("vote:updated", {
-        candidates,
-        totalVotes: getTotalVotes()
+const defaultPort = Number(process.env.PORT) || 5000;
+
+function startServer(portToUse) {
+    server.once("error", error => {
+        if (error.code === "EADDRINUSE") {
+            const nextPort = portToUse + 1;
+            console.warn(`Port ${portToUse} is in use. Retrying on ${nextPort}...`);
+            startServer(nextPort);
+            return;
+        }
+        throw error;
     });
-});
 
-server.listen(5000, () => {
-    console.log("Voting system running on http://localhost:5000");
-});
+    server.listen(portToUse, () => {
+        console.log(`Voting system running on http://localhost:${portToUse}`);
+    });
+}
+
+startServer(defaultPort);
