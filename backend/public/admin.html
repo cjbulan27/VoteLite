@@ -11,7 +11,7 @@
 <body>
 
     <nav class="navbar">
-        <h2>Vote<span>System</span></h2>
+        <h2>Vote<span>Live</span></h2>
         <a href="voter.html">Voter Page</a>
     </nav>
 
@@ -20,7 +20,7 @@
             <p class="eyebrow">ADMINISTRATION</p>
             <h1>Voting Dashboard</h1>
             <p>Monitor election results in real time.</p>
-            <p id="connection">Connecting...</p>
+            <p id="connection" class="connection-status">Connecting...</p>
         </section>
 
         <section class="statistics">
@@ -34,38 +34,52 @@
                 <h2 id="totalCandidates">0</h2>
             </div>
 
-            <div class="stat-card">
-                <p>Leading Candidate</p>
-                <h2 id="leader">None</h2>
+        </section>
+
+        <section class="chart-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">LIVE OVERVIEW</p>
+                    <h2>Votes by Candidate</h2>
+                </div>
+                <label for="categoryFilter">Category
+                    <select id="categoryFilter">
+                        <option value="all">All categories</option>
+                    </select>
+                </label>
             </div>
+            <div id="chartEmpty" class="empty-state" hidden>No votes yet</div>
+            <div class="chart-wrap"><canvas id="votesChart" aria-label="Votes per candidate" role="img"></canvas></div>
         </section>
 
         <section class="results-panel">
-            <h2>Live Voting Results</h2>
-            <div id="candidateResults">
-                Waiting for results...
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">LIVE BREAKDOWN</p>
+                    <h2>Live Voting Results</h2>
+                </div>
             </div>
+            <div id="candidateResults"></div>
+        </section>
+
+        <section class="add-candidate-panel">
+            <p class="eyebrow">ELECTION SETUP</p>
+            <h2>Add a Candidate</h2>
+            <form id="addCandidateForm" novalidate>
+                <label for="candidateName">Candidate Name</label>
+                <input type="text" id="candidateName" placeholder="Enter candidate name" required>
+
+                <label for="candidateCategory">Category</label>
+                <select id="candidateCategory" required>
+                    <option value="" disabled selected>Select the office they are running for</option>
+                </select>
+
+                <button type="submit" id="addCandidateButton">+ Add Candidate</button>
+            </form>
+            <p id="candidateMessage" role="status" aria-live="polite"></p>
         </section>
     </main>
-    
-    <form id="addCandidateForm">
-        <label for="candidateName">Candidate Name</label>
-
-        <input
-            type="text"
-            id="candidateName"
-            placeholder="Enter candidate name"
-            required
-        >
-
-        <button type="submit" id="addCandidateButton">
-            + Add Candidate
-        </button>
-    </form>
-
-    <p id="candidateMessage"></p>
-</section>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/admin.js"></script>
 </body>
 </html>

@@ -9,29 +9,43 @@
 </head>
 <body>
     <nav class="navbar">
-        <h2>Vote<span>System</span></h2>
+        <h2>Vote<span>Live</span></h2>
         <a href="admin.html">Admin Dashboard</a>
     </nav>
 
-    <main class="main-conterner">
-        <section class="Welcome">
-            <p class="eyebrow"> ONLINE ELECTION </p>
-            <h1>Make you vote count</h1>
+    <main class="main-container">
+        <section class="welcome">
+            <p class="eyebrow">ONLINE ELECTION</p>
+            <h1>Make your vote count</h1>
             <p>Select your preferred candidate and cast your vote.</p>
         </section>
 
         <section class="voting-panel">
-            <label for="voterId">Voter ID:</label>
-            <input type="text" id="voterId" name="voterId" placeholder="Enter your voter ID">
-            
-            <h2>Select Your Candidate</h2>
-            <div id-="candidates" class="candidate-grid">
-        
+            <label for="voterId">Voter ID</label>
+            <input type="text" id="voterId" name="voterId" placeholder="Enter your voter ID" autocomplete="off">
+            <div class="ballot-heading">
+                <div>
+                    <p class="eyebrow">YOUR BALLOT</p>
+                    <h2>Select Your Candidates</h2>
+                </div>
             </div>
-            <button id="voteButton">Submit My Vote</button>
-            <p id="message"></p>
+            <div id="candidateList" aria-live="polite"></div>
+            <button id="voteButton" type="button">Review Your Ballot</button>
+            <p id="message" role="status" aria-live="polite"></p>
+        </section>
+
+        <section id="reviewPanel" class="review-panel" hidden>
+            <p class="eyebrow">FINAL CHECK</p>
+            <h2>Review Your Ballot</h2>
+            <p class="review-intro">Confirm your selections before submitting. You can only vote once with this Voter ID.</p>
+            <div id="ballotSummary"></div>
+            <div class="review-actions">
+                <button id="backButton" class="secondary-button" type="button">Back</button>
+                <button id="confirmButton" type="button">Confirm and Submit</button>
+            </div>
+            <p id="reviewMessage" role="status" aria-live="polite"></p>
         </section>
     </main>
-<script src="js/voter.js"></script> 
+    <script src="js/voter.js"></script>
 </body>
 </html>
