@@ -107,6 +107,19 @@
                     </div>
                     <div id="candidateResults"></div>
                 </section>
+
+                <section class="manage-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">Candidate Management</p>
+                            <h2>Manage Candidates</h2>
+                        </div>
+                        <p id="manageCount" class="manage-count"></p>
+                    </div>
+                    <p id="manageMessage" role="status" aria-live="polite"></p>
+                    <div id="manageList"></div>
+                    <input type="file" id="rowPhotoInput" accept="image/jpeg,image/png,image/webp" hidden>
+                </section>
             </div>
 
             <aside class="add-candidate-panel">
@@ -116,10 +129,29 @@
                     <label for="candidateName">Candidate Name</label>
                     <input type="text" id="candidateName" placeholder="Enter candidate name" required>
 
+                    <label for="candidatePhoto">Candidate Photo <span class="optional">(optional)</span></label>
+                    <div class="drop">
+                        <span id="photoPreview" class="avatar xl initials">+</span>
+                        <div>
+                            <b>Upload a photo</b>
+                            <small>JPG, PNG or WebP. It appears beside the candidate’s name on the ballot.</small>
+                            <div class="drop-actions">
+                                <button type="button" id="choosePhotoButton" class="small-button">Choose photo</button>
+                                <button type="button" id="removePhotoButton" class="small-button danger-button" hidden>Remove</button>
+                            </div>
+                        </div>
+                        <input type="file" id="candidatePhoto" accept="image/jpeg,image/png,image/webp" hidden>
+                    </div>
+
                     <label for="candidateCategory">Category</label>
                     <select id="candidateCategory" required>
                         <option value="" disabled selected>Select the office they are running for</option>
                     </select>
+
+                    <div class="preview">
+                        <p>Ballot preview</p>
+                        <div id="ballotPreview" class="preview-card"></div>
+                    </div>
 
                     <button type="submit" id="addCandidateButton">+ Add Candidate</button>
                 </form>
@@ -134,6 +166,43 @@
             <span>Results update live as ballots are submitted.</span>
         </div>
     </footer>
+
+    <dialog id="editDialog" class="dialog" aria-labelledby="editTitle">
+        <form id="editForm" novalidate>
+            <h2 id="editTitle">Edit Candidate</h2>
+            <label for="editName">Candidate Name</label>
+            <input type="text" id="editName" required>
+
+            <label for="editCategory">Category</label>
+            <select id="editCategory"></select>
+            <p id="editCategoryNote" class="note" hidden>The office cannot be changed after a candidate has received votes.</p>
+
+            <label for="editPhotoInput">Candidate Photo</label>
+            <div class="drop">
+                <span id="editPhotoPreview" class="avatar xl initials"></span>
+                <div class="drop-actions">
+                    <button type="button" id="editChoosePhoto" class="small-button">Choose photo</button>
+                    <button type="button" id="editRemovePhoto" class="small-button danger-button" hidden>Remove photo</button>
+                </div>
+                <input type="file" id="editPhotoInput" accept="image/jpeg,image/png,image/webp" hidden>
+            </div>
+
+            <p id="editMessage" role="alert"></p>
+            <div class="dialog-actions">
+                <button type="button" id="editCancel" class="secondary-button">Cancel</button>
+                <button type="submit" id="editSave" class="primary-button">Save changes</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="removeDialog" class="dialog" aria-labelledby="removeTitle">
+        <h2 id="removeTitle">Remove candidate?</h2>
+        <p id="removeText"></p>
+        <div class="dialog-actions">
+            <button type="button" id="removeCancel" class="secondary-button">Cancel</button>
+            <button type="button" id="removeConfirm" class="danger-fill">Remove candidate</button>
+        </div>
+    </dialog>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/admin.js"></script>

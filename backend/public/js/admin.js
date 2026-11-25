@@ -14,11 +14,42 @@ const candidateNameInput = document.getElementById("candidateName");
 const candidateCategoryInput = document.getElementById("candidateCategory");
 const candidateMessage = document.getElementById("candidateMessage");
 const addCandidateButton = document.getElementById("addCandidateButton");
+const candidatePhotoInput = document.getElementById("candidatePhoto");
+const choosePhotoButton = document.getElementById("choosePhotoButton");
+const removePhotoButton = document.getElementById("removePhotoButton");
+const photoPreview = document.getElementById("photoPreview");
+const ballotPreview = document.getElementById("ballotPreview");
+const manageList = document.getElementById("manageList");
+const manageCount = document.getElementById("manageCount");
+const manageMessage = document.getElementById("manageMessage");
+const rowPhotoInput = document.getElementById("rowPhotoInput");
+const editDialog = document.getElementById("editDialog");
+const editForm = document.getElementById("editForm");
+const editNameInput = document.getElementById("editName");
+const editCategoryInput = document.getElementById("editCategory");
+const editCategoryNote = document.getElementById("editCategoryNote");
+const editPhotoPreview = document.getElementById("editPhotoPreview");
+const editPhotoInput = document.getElementById("editPhotoInput");
+const editChoosePhoto = document.getElementById("editChoosePhoto");
+const editRemovePhoto = document.getElementById("editRemovePhoto");
+const editMessage = document.getElementById("editMessage");
+const editCancel = document.getElementById("editCancel");
+const editSave = document.getElementById("editSave");
+const removeDialog = document.getElementById("removeDialog");
+const removeText = document.getElementById("removeText");
+const removeCancel = document.getElementById("removeCancel");
+const removeConfirm = document.getElementById("removeConfirm");
 
 let categories = [];
 let currentResults = { candidates: [], totalVotes: 0 };
 let votesChart = null;
 let candidateMessageTimer = null;
+let manageMessageTimer = null;
+let newPhoto = null;          // photo chosen in the Add Candidate form (data URL)
+let photoTargetId = null;     // candidate whose photo is being changed from the list
+let editingCandidate = null;  // candidate shown in the edit dialog
+let editPhoto;                // undefined = unchanged, string = new photo, null = removed
+let removingCandidate = null;
 
 function getInitials(name) {
     const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
@@ -68,6 +99,7 @@ function populateCategoryOptions() {
     if ([...candidateCategoryInput.options].some(option => option.value === selectedFormCategory)) {
         candidateCategoryInput.value = selectedFormCategory;
     }
+    renderAddPreview();
 }
 
 function getVisibleCategories() {
@@ -147,6 +179,7 @@ function renderResults(data = currentResults) {
     totalVotes.textContent = String(currentResults.totalVotes);
     totalCandidates.textContent = String(candidates.length);
     totalOffices.textContent = String(new Set(candidates.map(candidate => candidate.category_id)).size);
+    renderManage();
 
     const selectedCategory = categories.find(item => item.id === categoryFilter.value);
     renderChart(candidates, selectedCategory);
@@ -298,7 +331,7 @@ addCandidateForm.addEventListener("submit", async event => {
         const response = await fetch("/api/candidates", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, categoryId })
+            body: JSON.stringify({ name, categoryId, photo: newPhoto })
         });
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -308,6 +341,8 @@ addCandidateForm.addEventListener("submit", async event => {
 
         candidateNameInput.value = "";
         candidateCategoryInput.value = "";
+        newPhoto = null;
+        renderAddPreview();
         showCandidateMessage(result.message, "success");
     } catch (error) {
         console.error(error);
@@ -337,6 +372,333 @@ socket.on("vote:updated", data => {
         populateCategoryOptions();
     }
     renderResults(data);
+});
+
+// ---------- Candidate photos ----------
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// Crops the picture to a centered square and shrinks it, so uploads stay small and every avatar lines up.
+function fileToSquareDataUrl(file, size = 400) {
+    return new Promise((resolve, reject) => {
+        if (!PHOTO_TYPES.includes(file.type)) {
+            reject(new Error("Please choose a JPG, PNG or WebP image."));
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            reject(new Error("That image is too large. Please choose one under 10 MB."));
+            return;
+        }
+
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+            const side = Math.min(image.naturalWidth, image.naturalHeight);
+            const canvas = document.createElement("canvas");
+            canvas.width = size;
+            canvas.height = size;
+            const context = canvas.getContext("2d");
+            context.fillStyle = "#FFFFFF";
+            context.fillRect(0, 0, size, size);
+            context.drawImage(
+                image,
+                (image.naturalWidth - side) / 2,
+                (image.naturalHeight - side) / 2,
+                side,
+                side,
+                0,
+                0,
+                size,
+                size
+            );
+            URL.revokeObjectURL(url);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("That file could not be read as an image."));
+        };
+        image.src = url;
+    });
+}
+
+function setAvatarContent(element, name, photoUrl, fallbackText) {
+    element.textContent = "";
+    element.classList.toggle("initials", !photoUrl);
+    if (photoUrl) {
+        const image = document.createElement("img");
+        image.src = photoUrl;
+        image.alt = "";
+        element.appendChild(image);
+    } else {
+        element.textContent = fallbackText !== undefined ? fallbackText : getInitials(name);
+    }
+}
+
+async function sendCandidateRequest(url, method, body) {
+    const options = { method };
+    if (body) {
+        options.headers = { "Content-Type": "application/json" };
+        options.body = JSON.stringify(body);
+    }
+    const response = await fetch(url, options);
+    let result = {};
+    try {
+        result = await response.json();
+    } catch (error) {
+        // The server answered without JSON; fall through to the generic message below.
+    }
+    if (!response.ok || !result.success) {
+        throw new Error(result.message || "Something went wrong. Please try again.");
+    }
+    return result;
+}
+
+function showManageMessage(text, kind) {
+    window.clearTimeout(manageMessageTimer);
+    manageMessage.textContent = text;
+    manageMessage.className = kind;
+    manageMessage.classList.remove("fade-out");
+    manageMessageTimer = window.setTimeout(() => {
+        manageMessage.classList.add("fade-out");
+    }, 3500);
+}
+
+// ---------- Add Candidate: photo and ballot preview ----------
+function renderAddPreview() {
+    const name = candidateNameInput.value.trim() || "Candidate Name";
+    const category = categories.find(item => item.id === candidateCategoryInput.value);
+
+    ballotPreview.innerHTML = "";
+    const avatar = document.createElement("span");
+    avatar.className = "avatar lg";
+    setAvatarContent(avatar, name, newPhoto);
+
+    const text = document.createElement("span");
+    text.className = "preview-text";
+    const title = document.createElement("b");
+    title.textContent = name;
+    const office = document.createElement("small");
+    office.textContent = category ? category.name : "Office";
+    text.append(title, office);
+
+    const check = document.createElement("span");
+    check.className = "preview-check";
+    check.textContent = "\u2713";
+    ballotPreview.append(avatar, text, check);
+
+    setAvatarContent(photoPreview, "", newPhoto, "+");
+    removePhotoButton.hidden = !newPhoto;
+    choosePhotoButton.textContent = newPhoto ? "Change photo" : "Choose photo";
+}
+
+choosePhotoButton.addEventListener("click", () => candidatePhotoInput.click());
+removePhotoButton.addEventListener("click", () => {
+    newPhoto = null;
+    renderAddPreview();
+});
+candidatePhotoInput.addEventListener("change", async () => {
+    const file = candidatePhotoInput.files[0];
+    candidatePhotoInput.value = "";
+    if (!file) return;
+    try {
+        newPhoto = await fileToSquareDataUrl(file);
+        clearCandidateMessage();
+        renderAddPreview();
+    } catch (error) {
+        showCandidateMessage(error.message, "error");
+    }
+});
+candidateNameInput.addEventListener("input", renderAddPreview);
+candidateCategoryInput.addEventListener("change", renderAddPreview);
+
+// ---------- Manage Candidates ----------
+function renderManage() {
+    const candidates = currentResults.candidates;
+    const withPhotos = candidates.filter(candidate => candidate.photo).length;
+    manageCount.textContent = candidates.length === 0
+        ? ""
+        : `${candidates.length} ${candidates.length === 1 ? "candidate" : "candidates"} · ${withPhotos} with photos`;
+    manageList.innerHTML = "";
+
+    if (candidates.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "manage-empty";
+        empty.textContent = "No candidates yet. Add one using the form.";
+        manageList.appendChild(empty);
+        return;
+    }
+
+    const officeIndex = candidate => categories.findIndex(item => item.id === candidate.category_id);
+    [...candidates]
+        .sort((a, b) => officeIndex(a) - officeIndex(b) || a.id - b.id)
+        .forEach(candidate => {
+            const category = categories.find(item => item.id === candidate.category_id);
+            const votes = Number(candidate.votes) || 0;
+
+            const row = document.createElement("div");
+            row.className = "manage-row";
+
+            const avatar = createAvatar(candidate);
+            avatar.classList.add("lg");
+
+            const info = document.createElement("div");
+            info.className = "manage-info";
+            const name = document.createElement("b");
+            name.textContent = candidate.name;
+            const detail = document.createElement("small");
+            detail.textContent = `${category ? category.name : "Office"} · ${votes} ${votes === 1 ? "vote" : "votes"}` +
+                (candidate.photo ? "" : " · No photo yet");
+            info.append(name, detail);
+
+            const actions = document.createElement("div");
+            actions.className = "manage-actions";
+            const photoButton = document.createElement("button");
+            photoButton.type = "button";
+            photoButton.className = "small-button";
+            photoButton.textContent = candidate.photo ? "Change photo" : "Upload photo";
+            photoButton.addEventListener("click", () => {
+                photoTargetId = candidate.id;
+                rowPhotoInput.click();
+            });
+            const editButton = document.createElement("button");
+            editButton.type = "button";
+            editButton.className = "small-button";
+            editButton.textContent = "Edit";
+            editButton.addEventListener("click", () => openEditDialog(candidate));
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "small-button danger-button";
+            removeButton.textContent = "Remove";
+            removeButton.addEventListener("click", () => openRemoveDialog(candidate, category, votes));
+            actions.append(photoButton, editButton, removeButton);
+
+            row.append(avatar, info, actions);
+            manageList.appendChild(row);
+        });
+}
+
+rowPhotoInput.addEventListener("change", async () => {
+    const file = rowPhotoInput.files[0];
+    rowPhotoInput.value = "";
+    if (!file || photoTargetId === null) return;
+    const id = photoTargetId;
+    photoTargetId = null;
+    try {
+        const photo = await fileToSquareDataUrl(file);
+        await sendCandidateRequest(`/api/candidates/${id}`, "PUT", { photo });
+        showManageMessage("Photo updated.", "success");
+    } catch (error) {
+        showManageMessage(error.message, "error");
+    }
+});
+
+// ---------- Edit dialog ----------
+function renderEditPhoto() {
+    const photoUrl = editPhoto === undefined ? editingCandidate.photo : editPhoto;
+    setAvatarContent(editPhotoPreview, editNameInput.value || editingCandidate.name, photoUrl);
+    editRemovePhoto.hidden = !photoUrl;
+    editChoosePhoto.textContent = photoUrl ? "Change photo" : "Choose photo";
+}
+
+function openEditDialog(candidate) {
+    editingCandidate = candidate;
+    editPhoto = undefined;
+    editNameInput.value = candidate.name;
+    editCategoryInput.innerHTML = "";
+    categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category.id;
+        option.textContent = category.name;
+        editCategoryInput.appendChild(option);
+    });
+    editCategoryInput.value = candidate.category_id;
+    const locked = (Number(candidate.votes) || 0) > 0;
+    editCategoryInput.disabled = locked;
+    editCategoryNote.hidden = !locked;
+    editMessage.textContent = "";
+    renderEditPhoto();
+    editDialog.showModal();
+    editNameInput.focus();
+}
+
+editNameInput.addEventListener("input", () => {
+    if (editingCandidate) renderEditPhoto();
+});
+editChoosePhoto.addEventListener("click", () => editPhotoInput.click());
+editRemovePhoto.addEventListener("click", () => {
+    editPhoto = null;
+    renderEditPhoto();
+});
+editPhotoInput.addEventListener("change", async () => {
+    const file = editPhotoInput.files[0];
+    editPhotoInput.value = "";
+    if (!file) return;
+    try {
+        editPhoto = await fileToSquareDataUrl(file);
+        editMessage.textContent = "";
+        renderEditPhoto();
+    } catch (error) {
+        editMessage.textContent = error.message;
+    }
+});
+editCancel.addEventListener("click", () => editDialog.close());
+
+editForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const name = editNameInput.value.trim();
+    if (!name) {
+        editMessage.textContent = "Please enter a candidate name";
+        return;
+    }
+
+    const changes = { name };
+    if (!editCategoryInput.disabled) {
+        changes.categoryId = editCategoryInput.value;
+    }
+    if (typeof editPhoto === "string") {
+        changes.photo = editPhoto;
+    } else if (editPhoto === null) {
+        changes.removePhoto = true;
+    }
+
+    editSave.disabled = true;
+    try {
+        await sendCandidateRequest(`/api/candidates/${editingCandidate.id}`, "PUT", changes);
+        editDialog.close();
+        showManageMessage("Candidate updated.", "success");
+    } catch (error) {
+        editMessage.textContent = error.message;
+    } finally {
+        editSave.disabled = false;
+    }
+});
+
+// ---------- Remove dialog ----------
+function openRemoveDialog(candidate, category, votes) {
+    removingCandidate = candidate;
+    removeText.textContent =
+        `Remove ${candidate.name} from ${category ? category.name : "the ballot"}? ` +
+        (votes > 0 ? `Their ${votes} ${votes === 1 ? "vote" : "votes"} will also be removed from the results. ` : "") +
+        "This cannot be undone.";
+    removeDialog.showModal();
+}
+
+removeCancel.addEventListener("click", () => removeDialog.close());
+removeConfirm.addEventListener("click", async () => {
+    if (!removingCandidate) return;
+    const candidate = removingCandidate;
+    removeConfirm.disabled = true;
+    try {
+        await sendCandidateRequest(`/api/candidates/${candidate.id}`, "DELETE");
+        removeDialog.close();
+        showManageMessage(`${candidate.name} was removed.`, "success");
+    } catch (error) {
+        removeDialog.close();
+        showManageMessage(error.message, "error");
+    } finally {
+        removeConfirm.disabled = false;
+        removingCandidate = null;
+    }
 });
 
 loadInitialResults();

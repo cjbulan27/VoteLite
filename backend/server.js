@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => res.redirect("/voter.html"));
 
@@ -55,7 +55,7 @@ app.post("/api/vote", (req, res) => {
 });
 
 app.post("/api/candidates", (req, res) => {
-    const { name, categoryId } = req.body;
+    const { name, categoryId, photo } = req.body;
     if (typeof name !== "string" || !name.trim()) {
         return res.status(400).json({
             success: false,
@@ -69,7 +69,14 @@ app.post("/api/candidates", (req, res) => {
         });
     }
 
-    const result = data.addCandidate(name, categoryId);
+    if (photo !== undefined && photo !== null && typeof photo !== "string") {
+        return res.status(400).json({
+            success: false,
+            message: "The photo must be a JPG, PNG or WebP image."
+        });
+    }
+
+    const result = data.addCandidate(name, categoryId, photo);
     if (!result.success) {
         return res.status(400).json(result);
     }
@@ -80,6 +87,71 @@ app.post("/api/candidates", (req, res) => {
         message: "Candidate added successfully.",
         candidate: result.candidate
     });
+});
+
+app.get("/api/candidates/:id/photo", (req, res) => {
+    const photo = data.getPhoto(Number(req.params.id));
+    if (!photo) {
+        return res.status(404).end();
+    }
+    res.set("Content-Type", photo.mime);
+    res.set("Cache-Control", "public, max-age=86400");
+    return res.send(photo.buffer);
+});
+
+app.put("/api/candidates/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+        return res.status(400).json({ success: false, message: "Invalid candidate." });
+    }
+
+    const { name, categoryId, photo, removePhoto } = req.body || {};
+    if ((name !== undefined && typeof name !== "string") ||
+        (categoryId !== undefined && typeof categoryId !== "string") ||
+        (photo !== undefined && photo !== null && typeof photo !== "string")) {
+        return res.status(400).json({ success: false, message: "Invalid candidate details." });
+    }
+
+    const result = data.updateCandidate(id, { name, categoryId, photo, removePhoto: removePhoto === true });
+    if (!result.success) {
+        return res.status(result.status || 400).json(result);
+    }
+
+    io.emit("vote:updated", getResults());
+    return res.json({
+        success: true,
+        message: "Candidate updated.",
+        candidate: result.candidate
+    });
+});
+
+app.delete("/api/candidates/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+        return res.status(400).json({ success: false, message: "Invalid candidate." });
+    }
+
+    const result = data.removeCandidate(id);
+    if (!result.success) {
+        return res.status(result.status || 400).json(result);
+    }
+
+    io.emit("vote:updated", getResults());
+    return res.json({ success: true, message: "Candidate removed." });
+});
+
+app.use((error, req, res, next) => {
+    if (error.type === "entity.too.large") {
+        return res.status(413).json({
+            success: false,
+            message: "The photo is too large. Please choose a smaller image."
+        });
+    }
+    if (error.type === "entity.parse.failed") {
+        return res.status(400).json({ success: false, message: "Invalid request." });
+    }
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Something went wrong." });
 });
 
 io.on("connection", socket => {
