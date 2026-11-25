@@ -1,84 +1,140 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <title>Admin Dashboard | VoteLite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/Admin.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
-    <nav class="navbar">
-        <h2>Vote<span>Live</span></h2>
-        <a href="voter.html">Voter Page</a>
-    </nav>
+    <header class="navbar">
+        <div class="navbar-inner">
+            <div class="brand">
+                <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="#D2B56A" stroke-width="2"/><path d="M10 17.5l5 5 9-10" fill="none" stroke="#fff" stroke-width="2.5"/></svg>
+                <div>
+                    <h2>VoteLite</h2>
+                    <small>Election Administration</small>
+                </div>
+            </div>
+            <a href="voter.html">Voter Page</a>
+        </div>
+    </header>
+
+    <section class="welcome">
+        <div class="welcome-inner">
+            <div>
+                <p class="eyebrow">Administration</p>
+                <h1>Voting Dashboard</h1>
+                <p class="welcome-text">Monitor election results in real time.</p>
+                <div class="chips">
+                    <span>Live results</span>
+                    <span>Real-time sync</span>
+                    <span>Candidate management</span>
+                </div>
+            </div>
+            <div class="hero-side">
+                <p id="connection" class="connection-status">Connecting...</p>
+                <svg class="seal" width="120" height="120" viewBox="0 0 190 190" aria-hidden="true"><circle cx="95" cy="95" r="88" fill="none" stroke="#D2B56A" stroke-width="2" opacity=".7"/><circle cx="95" cy="95" r="72" fill="none" stroke="#D2B56A" stroke-width="1" stroke-dasharray="3 5" opacity=".7"/><path d="M68 97l19 19 36-40" fill="none" stroke="#fff" stroke-width="6" opacity=".85"/></svg>
+            </div>
+        </div>
+    </section>
 
     <main class="main-container">
-        <section class="welcome">
-            <p class="eyebrow">ADMINISTRATION</p>
-            <h1>Voting Dashboard</h1>
-            <p>Monitor election results in real time.</p>
-            <p id="connection" class="connection-status">Connecting...</p>
-        </section>
-
         <section class="statistics">
             <div class="stat-card">
-                <p>Total Votes</p>
-                <h2 id="totalVotes">0</h2>
+                <span class="stat-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="11" rx="1.5" fill="none" stroke="#1F5A42" stroke-width="1.8"/><path d="M8 9V4h8v5M9.5 14l2 2 3.5-4" fill="none" stroke="#1F5A42" stroke-width="1.8"/></svg>
+                </span>
+                <div>
+                    <p>Total Votes</p>
+                    <h2 id="totalVotes">0</h2>
+                    <small>Candidate selections recorded</small>
+                </div>
             </div>
 
             <div class="stat-card">
-                <p>Total Candidates</p>
-                <h2 id="totalCandidates">0</h2>
+                <span class="stat-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5" fill="none" stroke="#1F5A42" stroke-width="1.8"/><path d="M2.5 20c.7-4 3.5-5.5 6.5-5.5s5.8 1.5 6.5 5.5" fill="none" stroke="#1F5A42" stroke-width="1.8"/><circle cx="17" cy="9" r="2.8" fill="none" stroke="#1F5A42" stroke-width="1.8"/><path d="M17 14.5c2.5 0 4.2 1.4 4.7 4.5" fill="none" stroke="#1F5A42" stroke-width="1.8"/></svg>
+                </span>
+                <div>
+                    <p>Total Candidates</p>
+                    <h2 id="totalCandidates">0</h2>
+                    <small>Registered across all offices</small>
+                </div>
             </div>
 
+            <div class="stat-card">
+                <span class="stat-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4M6 5h11l-2 4 2 4H6" fill="none" stroke="#1F5A42" stroke-width="1.8"/></svg>
+                </span>
+                <div>
+                    <p>Offices</p>
+                    <h2 id="totalOffices">0</h2>
+                    <small>With registered candidates</small>
+                </div>
+            </div>
         </section>
 
-        <section class="chart-panel">
-            <div class="panel-heading">
-                <div>
-                    <p class="eyebrow">LIVE OVERVIEW</p>
-                    <h2>Votes by Candidate</h2>
-                </div>
-                <label for="categoryFilter">Category
-                    <select id="categoryFilter">
-                        <option value="all">All categories</option>
+        <div class="dashboard-grid">
+            <div class="column">
+                <section class="chart-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">Live Overview</p>
+                            <h2>Votes by Candidate</h2>
+                        </div>
+                        <label for="categoryFilter">Category
+                            <select id="categoryFilter">
+                                <option value="all">All categories</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="chartEmpty" class="empty-state" hidden>No votes yet</div>
+                    <div class="chart-wrap"><canvas id="votesChart" aria-label="Votes per candidate" role="img"></canvas></div>
+                </section>
+
+                <section class="results-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">Live Breakdown</p>
+                            <h2>Live Voting Results</h2>
+                        </div>
+                    </div>
+                    <div id="candidateResults"></div>
+                </section>
+            </div>
+
+            <aside class="add-candidate-panel">
+                <p class="eyebrow">Election Setup</p>
+                <h2>Add a Candidate</h2>
+                <form id="addCandidateForm" novalidate>
+                    <label for="candidateName">Candidate Name</label>
+                    <input type="text" id="candidateName" placeholder="Enter candidate name" required>
+
+                    <label for="candidateCategory">Category</label>
+                    <select id="candidateCategory" required>
+                        <option value="" disabled selected>Select the office they are running for</option>
                     </select>
-                </label>
-            </div>
-            <div id="chartEmpty" class="empty-state" hidden>No votes yet</div>
-            <div class="chart-wrap"><canvas id="votesChart" aria-label="Votes per candidate" role="img"></canvas></div>
-        </section>
 
-        <section class="results-panel">
-            <div class="panel-heading">
-                <div>
-                    <p class="eyebrow">LIVE BREAKDOWN</p>
-                    <h2>Live Voting Results</h2>
-                </div>
-            </div>
-            <div id="candidateResults"></div>
-        </section>
-
-        <section class="add-candidate-panel">
-            <p class="eyebrow">ELECTION SETUP</p>
-            <h2>Add a Candidate</h2>
-            <form id="addCandidateForm" novalidate>
-                <label for="candidateName">Candidate Name</label>
-                <input type="text" id="candidateName" placeholder="Enter candidate name" required>
-
-                <label for="candidateCategory">Category</label>
-                <select id="candidateCategory" required>
-                    <option value="" disabled selected>Select the office they are running for</option>
-                </select>
-
-                <button type="submit" id="addCandidateButton">+ Add Candidate</button>
-            </form>
-            <p id="candidateMessage" role="status" aria-live="polite"></p>
-        </section>
+                    <button type="submit" id="addCandidateButton">+ Add Candidate</button>
+                </form>
+                <p id="candidateMessage" role="status" aria-live="polite"></p>
+            </aside>
+        </div>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span><b>VoteLite</b> · Election Administration</span>
+            <span>Results update live as ballots are submitted.</span>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/admin.js"></script>
 </body>

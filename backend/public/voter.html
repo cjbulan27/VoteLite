@@ -3,39 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voter Portal | Online Election</title>
-    <link rel="stylesheet" href="css/voter.css">
+    <title>Voter Portal | VoteLite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/Voter.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <nav class="navbar">
-        <h2>Vote<span>Live</span></h2>
-        <a href="admin.html">Admin Dashboard</a>
-    </nav>
+    <header class="navbar">
+        <div class="navbar-inner">
+            <div class="brand">
+                <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="#D2B56A" stroke-width="2"/><path d="M10 17.5l5 5 9-10" fill="none" stroke="#fff" stroke-width="2.5"/></svg>
+                <div>
+                    <h2>VoteLite</h2>
+                    <small>Official Voting Portal</small>
+                </div>
+            </div>
+            <a href="admin.html">Admin Dashboard</a>
+        </div>
+    </header>
+
+    <section class="welcome">
+        <div class="welcome-inner">
+            <div>
+                <p class="eyebrow">Official Ballot</p>
+                <h1>Sa Bawat Boto, May Pagbabago</h1>
+                <p class="welcome-text">Isang Boto, Isang Tinig, Isang Pagbabago.</p>
+                <div class="chips">
+                    <span>Secure</span>
+                    <span>One vote per Voter ID</span>
+                    <span>Confidential</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <main class="main-container">
-        <section class="welcome">
-            <p class="eyebrow">ONLINE ELECTION</p>
-            <h1>Make your vote count</h1>
-            <p>Select your preferred candidate and cast your vote.</p>
+        <ol class="steps" id="steps">
+            <li class="on"><span>1</span>Identify</li>
+            <li><span>2</span>Select Candidates</li>
+            <li><span>3</span>Review and Submit</li>
+        </ol>
+
+        <section id="idPanel" class="panel">
+            <div class="section-head">
+                <span class="number">1</span>
+                <div>
+                    <h2>Voter Identification</h2>
+                    <p class="hint">Enter your details exactly as they appear on your voter record.</p>
+                </div>
+            </div>
+            <div class="id-fields">
+                <div>
+                    <label for="voterId">Voter ID</label>
+                    <input type="text" id="voterId" name="voterId" placeholder="Enter your Voter ID" autocomplete="off">
+                </div>
+                <div>
+                    <label for="voterName">Full Name</label>
+                    <input type="text" id="voterName" name="voterName" placeholder="Enter your full name" autocomplete="off">
+                </div>
+            </div>
         </section>
 
-        <section class="voting-panel">
-            <label for="voterId">Voter ID</label>
-            <input type="text" id="voterId" name="voterId" placeholder="Enter your voter ID" autocomplete="off">
-            <div class="ballot-heading">
+        <section id="ballotPanel" class="panel voting-panel">
+            <div class="section-head">
+                <span class="number">2</span>
                 <div>
-                    <p class="eyebrow">YOUR BALLOT</p>
+                    <p class="eyebrow">Your Ballot</p>
                     <h2>Select Your Candidates</h2>
                 </div>
             </div>
+            <div class="progress-box">
+                <div class="progress-top">
+                    <b>Ballot progress</b>
+                    <span id="progressText">0 of 0 offices selected</span>
+                </div>
+                <div class="progress-track"><div id="progressFill"></div></div>
+            </div>
+            <p class="info">Only offices with registered candidates appear on your ballot. Offices without candidates are skipped, so you can go straight to review after voting.</p>
             <div id="candidateList" aria-live="polite"></div>
-            <button id="voteButton" type="button">Review Your Ballot</button>
+            <div class="actions">
+                <p>You can only vote once with this Voter ID. You will be able to review your ballot before it is submitted.</p>
+                <button id="voteButton" type="button">Review Your Ballot</button>
+            </div>
             <p id="message" role="status" aria-live="polite"></p>
         </section>
 
-        <section id="reviewPanel" class="review-panel" hidden>
-            <p class="eyebrow">FINAL CHECK</p>
+        <section id="reviewPanel" class="panel review-panel" hidden>
+            <p class="eyebrow">Final Check</p>
             <h2>Review Your Ballot</h2>
             <p class="review-intro">Confirm your selections before submitting. You can only vote once with this Voter ID.</p>
             <div id="ballotSummary"></div>
@@ -45,7 +101,29 @@
             </div>
             <p id="reviewMessage" role="status" aria-live="polite"></p>
         </section>
+
+        <section id="doneScreen" class="panel done-panel" hidden>
+            <div class="big">
+                <svg width="42" height="42" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="1.4"/></svg>
+            </div>
+            <p class="eyebrow">Vote Recorded</p>
+            <h2>Salamat sa Iyong Boto!</h2>
+            <p class="done-text">Your ballot has been submitted successfully. <span id="doneName"></span></p>
+            <div class="receipt">
+                <div><small>Voter ID</small><b id="doneVoterId"></b></div>
+                <div><small>Offices voted</small><b id="doneOffices"></b></div>
+                <div><small>Status</small><b>Recorded</b></div>
+            </div>
+            <button id="homeButton" type="button">Back to Home</button>
+        </section>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span><b>VoteLite</b> · Official Voting Portal</span>
+            <span>Your ballot is confidential. Each Voter ID may vote only once.</span>
+        </div>
+    </footer>
     <script src="js/voter.js"></script>
 </body>
 </html>

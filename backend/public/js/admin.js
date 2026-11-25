@@ -2,6 +2,7 @@ const socket = io();
 
 const totalVotes = document.getElementById("totalVotes");
 const totalCandidates = document.getElementById("totalCandidates");
+const totalOffices = document.getElementById("totalOffices");
 const candidateResults = document.getElementById("candidateResults");
 const connection = document.getElementById("connection");
 const categoryFilter = document.getElementById("categoryFilter");
@@ -18,6 +19,31 @@ let categories = [];
 let currentResults = { candidates: [], totalVotes: 0 };
 let votesChart = null;
 let candidateMessageTimer = null;
+
+function getInitials(name) {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    const first = parts[0][0];
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
+}
+
+// Shows the candidate's uploaded photo when there is one, otherwise their initials.
+function createAvatar(candidate) {
+    const avatar = document.createElement("span");
+    avatar.className = "avatar";
+    if (candidate.photo) {
+        const image = document.createElement("img");
+        image.src = candidate.photo;
+        image.alt = "";
+        image.loading = "lazy";
+        avatar.appendChild(image);
+    } else {
+        avatar.classList.add("initials");
+        avatar.textContent = getInitials(candidate.name);
+    }
+    return avatar;
+}
 
 function populateCategoryOptions() {
     const selectedFilter = categoryFilter.value || "all";
@@ -72,7 +98,7 @@ function renderChart(candidates, category) {
         : `${categories.find(item => item.id === candidate.category_id)?.name || "Category"} · ${candidate.name}`);
     const values = categoryCandidates.map(candidate => Number(candidate.votes) || 0);
     const colors = categoryCandidates.map(candidate =>
-        Number(candidate.votes) === maxVotes ? "#16a36a" : "#4383d3"
+        Number(candidate.votes) === maxVotes ? "#1F5A42" : "#8FB09F"
     );
 
     if (votesChart) {
@@ -104,7 +130,7 @@ function renderChart(candidates, category) {
                 tooltip: { callbacks: { label: context => `${context.parsed.x} votes` } }
             },
             scales: {
-                x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "#edf1f5" } },
+                x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "#E4E9E5" } },
                 y: { grid: { display: false } }
             }
         }
@@ -120,6 +146,7 @@ function renderResults(data = currentResults) {
 
     totalVotes.textContent = String(currentResults.totalVotes);
     totalCandidates.textContent = String(candidates.length);
+    totalOffices.textContent = String(new Set(candidates.map(candidate => candidate.category_id)).size);
 
     const selectedCategory = categories.find(item => item.id === categoryFilter.value);
     renderChart(candidates, selectedCategory);
@@ -163,7 +190,7 @@ function renderResults(data = currentResults) {
             topLine.className = "result-topline";
             const name = document.createElement("h4");
             name.textContent = candidate.name;
-            topLine.appendChild(name);
+            topLine.append(createAvatar(candidate), name);
             if (count > 0 && count === maximum) {
                 const badge = document.createElement("span");
                 badge.className = "leading-badge";

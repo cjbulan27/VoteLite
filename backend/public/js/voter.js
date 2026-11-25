@@ -10,9 +10,74 @@ const backButton = document.getElementById("backButton");
 const confirmButton = document.getElementById("confirmButton");
 const reviewMessage = document.getElementById("reviewMessage");
 
+const progressText = document.getElementById("progressText");
+const progressFill = document.getElementById("progressFill");
+const stepItems = document.querySelectorAll("#steps li");
+
+const idPanel = document.getElementById("idPanel");
+const ballotPanel = document.getElementById("ballotPanel");
+const voterNameInput = document.getElementById("voterName");
+const doneScreen = document.getElementById("doneScreen");
+const doneName = document.getElementById("doneName");
+const doneVoterId = document.getElementById("doneVoterId");
+const doneOffices = document.getElementById("doneOffices");
+const homeButton = document.getElementById("homeButton");
+
+const CHECK_ICON = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" stroke-width="2"/></svg>';
+
 let categories = [];
 let candidates = [];
 const selectedIds = new Set();
+
+function getInitials(name) {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    const first = parts[0][0];
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
+}
+
+// Shows the candidate's uploaded photo when there is one, otherwise their initials.
+function createAvatar(candidate) {
+    const avatar = document.createElement("span");
+    avatar.className = "avatar";
+    if (candidate.photo) {
+        const image = document.createElement("img");
+        image.src = candidate.photo;
+        image.alt = "";
+        image.loading = "lazy";
+        avatar.appendChild(image);
+    } else {
+        avatar.classList.add("initials");
+        avatar.textContent = getInitials(candidate.name);
+    }
+    return avatar;
+}
+
+// Only offices that actually have candidates are shown on the ballot.
+function getActiveCategories() {
+    return categories.filter(category =>
+        candidates.some(candidate => candidate.category_id === category.id)
+    );
+}
+
+function setStep(current) {
+    stepItems.forEach((item, index) => {
+        item.classList.toggle("on", index + 1 === current);
+        item.classList.toggle("done", index + 1 < current);
+    });
+}
+
+function updateProgress() {
+    const active = getActiveCategories();
+    const done = active.filter(category =>
+        getSelectedForCategory(category.id).length > 0
+    ).length;
+    progressText.textContent = `${done} of ${active.length} offices selected`;
+    progressFill.style.width = active.length
+        ? `${(done / active.length) * 100}%`
+        : "0";
+}
 
 function getSelectedForCategory(categoryId) {
     return candidates.filter(candidate =>
@@ -29,7 +94,15 @@ function renderCandidates() {
         return;
     }
 
-    categories.forEach(category => {
+    const activeCategories = getActiveCategories();
+    if (activeCategories.length === 0) {
+        candidateList.textContent = "No candidates have been added yet. Please check back soon.";
+        voteButton.disabled = true;
+        updateProgress();
+        return;
+    }
+
+    activeCategories.forEach(category => {
         const section = document.createElement("section");
         section.className = "category-section";
 
@@ -56,32 +129,31 @@ function renderCandidates() {
         const grid = document.createElement("div");
         grid.className = "candidate-grid";
 
-        if (categoryCandidates.length === 0) {
-            const empty = document.createElement("p");
-            empty.className = "category-empty";
-            empty.textContent = "Candidates will appear here when they are added.";
-            grid.appendChild(empty);
-        }
-
         categoryCandidates.forEach(candidate => {
             const isSelected = selectedIds.has(candidate.id);
             const atLimit = selected >= category.max_votes;
-            const card = document.createElement("article");
+            const card = document.createElement("button");
+            card.type = "button";
             card.className = `candidate-card${isSelected ? " selected" : ""}`;
+            card.disabled = category.max_votes > 1 && !isSelected && atLimit;
+            card.setAttribute("aria-pressed", String(isSelected));
 
-            const name = document.createElement("h4");
+            const avatar = createAvatar(candidate);
+
+            const text = document.createElement("span");
+            text.className = "candidate-text";
+            const name = document.createElement("b");
             name.textContent = candidate.name;
+            const description = document.createElement("small");
+            description.textContent = isSelected ? "Selected · tap to unselect" : "Tap to select";
+            text.append(name, description);
 
-            const description = document.createElement("p");
-            description.textContent = category.name;
+            const mark = document.createElement("span");
+            mark.className = "check";
+            mark.innerHTML = isSelected ? CHECK_ICON : "";
 
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "select-button";
-            button.disabled = category.max_votes > 1 && !isSelected && atLimit;
-            button.setAttribute("aria-pressed", String(isSelected));
-            button.textContent = isSelected ? "✓ Selected · Unselect" : "Select Candidate";
-            button.addEventListener("click", () => {
+            card.append(avatar, text, mark);
+            card.addEventListener("click", () => {
                 if (selectedIds.has(candidate.id)) {
                     selectedIds.delete(candidate.id);
                 } else {
@@ -98,7 +170,6 @@ function renderCandidates() {
                 renderCandidates();
             });
 
-            card.append(name, description, button);
             grid.appendChild(card);
         });
 
@@ -114,6 +185,8 @@ function renderCandidates() {
     });
 
     voteButton.disabled = candidates.length === 0;
+    updateProgress();
+    setStep(!doneScreen.hidden ? 4 : !reviewPanel.hidden ? 3 : selectedIds.size > 0 ? 2 : 1);
 }
 
 async function loadBallot() {
@@ -154,7 +227,7 @@ function showReview() {
     }
 
     ballotSummary.innerHTML = "";
-    categories.forEach(category => {
+    getActiveCategories().forEach(category => {
         const row = document.createElement("div");
         row.className = "summary-category";
         const title = document.createElement("h3");
@@ -172,6 +245,7 @@ function showReview() {
     reviewMessage.className = "";
     reviewPanel.hidden = false;
     reviewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    setStep(3);
 }
 
 async function submitBallot() {
@@ -193,11 +267,26 @@ async function submitBallot() {
             return;
         }
 
+        const officesVoted = getActiveCategories().filter(category =>
+            getSelectedForCategory(category.id).length > 0
+        ).length;
+        const displayName = voterNameInput.value.trim();
+
         selectedIds.clear();
+        doneVoterId.textContent = voterId;
+        doneOffices.textContent = String(officesVoted);
+        doneName.textContent = displayName
+            ? `Thank you for taking part in the election, ${displayName}.`
+            : "Thank you for taking part in the election.";
         voterIdInput.value = "";
+        voterNameInput.value = "";
+        message.textContent = "";
+        message.className = "";
+
         reviewPanel.hidden = true;
-        message.textContent = result.message;
-        message.className = "success";
+        idPanel.hidden = true;
+        ballotPanel.hidden = true;
+        doneScreen.hidden = false;
         window.scrollTo({ top: 0, behavior: "smooth" });
         renderCandidates();
     } catch (error) {
@@ -212,8 +301,17 @@ async function submitBallot() {
 voteButton.addEventListener("click", showReview);
 backButton.addEventListener("click", () => {
     reviewPanel.hidden = true;
+    setStep(selectedIds.size > 0 ? 2 : 1);
     voterIdInput.focus();
 });
 confirmButton.addEventListener("click", submitBallot);
+homeButton.addEventListener("click", () => {
+    doneScreen.hidden = true;
+    idPanel.hidden = false;
+    ballotPanel.hidden = false;
+    renderCandidates();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    voterIdInput.focus();
+});
 socket.on("vote:updated", loadBallot);
 loadBallot();
