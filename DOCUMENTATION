@@ -1,0 +1,147 @@
+## VOTE LITE - A simple Real-Time Voting System
+
+## Subject : ITP313L - Event Driven Programming 
+## Course and Block : BSIT 3C
+## Instructor : Mr. Loudel Manaloto
+
+## Developers: 
+Frontend Developer : Joyce Valerie C. Olonan
+Backend Developer : Christian Jacob Bulan
+
+## Project Overview
+       VoteLite is a web-based voting system that lets registered voters cast their ballots online and 
+lets an administrator watch the results update in real time. The administrator manages the 
+candidates (names, offices, and photos), voters identify themselves with a Voter ID, choose 
+their candidates, review the ballot, and submit it. Every submitted ballot is reflected immediately 
+on the admin dashboard without refreshing the page.
+
+## Features
+
+**Voter page**
+- Enter Voter ID and Full Name 
+- Pick candidates per office; each candidate shows a photo (or initials) beside the name
+- Only offices that have candidates appear on the ballot
+- Review the ballot, then submit and see a "Vote Recorded" screen
+- One ballot per Voter ID
+
+**Admin page ("Sentro ng Halalan")**
+- Live stats, chart, and results per office
+- Add candidates with a name, office, and optional photo
+- Change photo, edit, or remove candidates
+
+## Tech Stack
+
+Node.js, Express, Socket.io, Chart.js, HTML/CSS/JavaScript. Data is stored in memory,
+so it resets when the server restarts.
+
+1.1 Objectives
+•Provide a simple, clear, and trustworthy ballot interface for voters.
+•Give the administrator one place to manage candidates and monitor results live.
+•Enforce basic election rules: one ballot per Voter ID and a maximum number of choices per office.
+•Show results instantly using real-time communication (WebSockets).
+
+## How to Run
+
+1. Install Node.js
+2. `cd backend`
+3. `npm install`
+4. `npm start`
+5. Open the address shown in the terminal (usually http://localhost:5000), then go to `/voter.html` or `/admin.html`
+
+Internet is needed for Chart.js and Google Fonts.
+
+## Team and Division of Work
+
+OLONAN, JOYCE VALERIE C. - Frontend
+Accomplishment : User interface design and implementation: voter page, admin dashboard, 
+styling, responsive layout, and the page scripts (voter.js, admin.js). Also the Project Documentation
+
+BULAN, CHRISTIAN JACOB - Backend
+Accomplishment : Server and data layer: Express server, API routes, 
+Socket.io live updates, voting rules and validation (server.js, data.js).
+
+## AI Usage Disclosure
+
+## JOYCE OLONAN : 
+I used Claude (Anthropic) as an AI assistant during development.
+
+Design: I personally planned and designed the system's user interface, including its layout,
+colors, features, and overall appearance.
+
+Development: I coded the system based on my own design and ideas, implementing 
+the frontend and its functionality.
+
+AI Assistance: After completing the initial design and coding, I used Claude to suggest
+additional details, improvements, and enhancements to make the system better.
+
+Final Output: I reviewed the suggestions, applied the necessary improvements, and finalized the system.
+
+## Sample Prompts Used
+
+Some of the prompts I used when asking Claude for assistance:
+
+"Review my existing system and suggest additional features or improvements that would make it more user-friendly and functional."
+
+"Analyze my current UI design and suggest improvements without changing its overall layout, theme, or design direction."
+
+"Check my existing code for possible errors and suggest ways to improve its functionality."
+
+"Suggest additional details that could make this voting system more complete and professional."
+
+"Improve the existing implementation while keeping the current design, features, and backend functionality intact."
+
+## CHRISTIAN JACOB BULAN :
+
+
+(INPUT TEXT HERE)
+
+
+###################################################################################
+
+Future Improvements :
+
+•Admin login and roles.
+•User Login and ID Authentication
+•A database for permanent storage.
+•A registered-voter list (added by the admin or imported from CSV/Excel) to verify Voter IDs.
+•Saving and verifying the voter’s name.
+•Exporting results to PDF or Excel, and an audit log.
+
+*Important note*
+
+This project was developed as a learning activity to apply the concepts and lessons
+we learned in Event-Driven Programming (EDP). It demonstrates how event-driven 
+programming works through a voting system, particularly how different events,
+user interactions, and functions work together to perform specific actions.
+
+Please note that this is only a demonstration project and is not yet a fully
+reliable or production-ready voting system. Some features, such as permanent database 
+storage, admin authentication, verification against an official registered-voter list,
+and stronger security measures, have not yet been implemented.
+
+However, these limitations can be addressed through further development. 
+We believe that the system can still be improved and expanded by implementing 
+additional features, integrating a proper database, and strengthening
+its security and reliability.
+
+The main goal of this project is to apply our knowledge of
+Event-Driven Programming in a practical way, demonstrate
+what we have learned, and gain experience in designing
+and developing a functional system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
