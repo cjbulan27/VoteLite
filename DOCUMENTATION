@@ -92,13 +92,18 @@ Some of the prompts I used when asking Claude for assistance:
 
 ## CHRISTIAN JACOB BULAN :
 
-Design: The system's overall concept, features, and design direction were planned by our development team. I focused mainly on the backend structure and functionality of the system.
+Design: 
+The system's overall concept, features, and design direction were planned by our development team. I focused mainly on the backend structure and functionality of the system.
 
-Development: I was primarily responsible for the backend development, including implementing server-side functionality, handling API requests, managing database operations, and ensuring that the voting system processes and updates votes correctly in real time.
+Development: 
+I was primarily responsible for the backend development, including implementing server-side functionality, handling API requests, managing database operations, and ensuring that the voting system processes and updates votes correctly in real time.
 
-AI Assistance: During development, I used ChatGPT to help review my backend code, identify possible errors, suggest improvements, and provide recommendations for making the system more efficient, secure, and reliable.
+AI Assistance: 
+During development, I used ChatGPT to help review my backend code, identify possible errors, suggest improvements, and provide recommendations for making the system more efficient, secure, and reliable.
 
-Final Output: I reviewed the suggestions provided by ChatGPT, selected the improvements that were appropriate for the project, implemented the necessary changes, and tested the system to ensure that its backend functionality worked as expected.
+Final Output: 
+I reviewed the suggestions provided by ChatGPT, selected the improvements that were appropriate for the project, implemented the necessary changes, and tested the system to ensure that its backend functionality worked as expected.
+
 
 Sample Prompts Used
 
